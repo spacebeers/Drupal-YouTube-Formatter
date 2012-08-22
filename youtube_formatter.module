@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * @file
+ * adds a formatter for text fields that embeds a youtube video
+ */
+ 
+/**
+ * Implements hook_field_formatter_info().
+ */
+ 
+ 
+function youtube_formatter_field_formatter_info() {
+  return array(
+    'youtube_formatter' => array( // Machine name of the formatter
+      'label' => t('Youtube video'),
+      'field types' => array('text'), // This will only be available to text fields
+      'settings'  => array( // Array of the settings we'll create        
+        'video_width' => 'The width of the video',
+		'video_height' => 'The height of the video',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function youtube_formatter_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  //This gets the view_mode where our settings are stored
+  $display = $instance['display'][$view_mode];
+  //This gets the actual settings
+  $settings = $display['settings'];
+  //Initialize the element variable
+  $element = array();
+  //Add your select box
+  $element['video_width'] = array(
+    '#type'           => 'textfield',                        
+    '#title'          => t('Video width'),                  
+    '#description'    => t('Enter the embedded video\'s width'), 
+    '#default_value'  => $settings['video_width'],             
+  );
+  $element['video_height'] = array(
+    '#type'           => 'textfield',                        
+    '#title'          => t('Video height'),                      
+    '#description'    => t('Enter the embedded video\'s height'),  		
+    '#default_value'  => $settings['video_height'],           
+  );
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function youtube_formatter_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = t('Control the embedded video\'s dimensions here. Use Youtube to work out the aspect ratio.', array(
+    '@video_width'     => $settings['video_width'],
+    '@video_height'  => $settings['video_height'],
+  )); 
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function youtube_formatter_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+	$element = array(); // Initialize the var
+	$options = '';
+	$settings = $display['settings']; 
+	$width = $settings['video_width'];
+	$height = $settings['video_height']; 
+	
+	if ($settings['video_width']) {
+		$width = $settings['video_width'];
+		$options .= 'width="'.$width.'" ';
+	}
+	
+	if ($settings['video_height']) {
+		$height = $settings['video_height'];
+		$options .= ' height="'.$height.'"';
+	} 	
+	
+	$count = 0;
+	foreach ($items as $delta => $item) {	
+		$theVideo = $item['safe_value']; 
+		$video[$count] = '<div class="videoPadder"><iframe src="http://www.youtube.com/embed/' . $theVideo . '" '.$options.' frameborder="0" allowfullscreen></iframe></div>';
+		$count++;
+	}	
+	
+	$options = array(
+		'html' => TRUE, 
+		'attributes'  => array(
+      		'width' => $width,
+			'height' => $height,
+     	 ),
+	);	
+	
+	if(isset($theVideo)) {
+		for ($i = 0; $i < sizeof($video); $i++) {
+			$element[$i]['#markup'] = $video[$i]; 
+		}
+	}
+	
+	return $element;
+}
+
+

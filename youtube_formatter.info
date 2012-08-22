@@ -1,0 +1,5 @@
+name = Youtube formatter
+description = "Adds a field type and formatter for displaying youtube videos"
+package = Mark Design
+core = 7.x
+files[] = youtube_formatter.module
